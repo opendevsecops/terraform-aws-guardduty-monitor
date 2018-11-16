@@ -3,8 +3,22 @@
 
 # AWS GuardDuty Monitor Terraform Module
 
-A terraform module to monitor GuardDuty with Slack.
+A terraform module to monitor GuardDuty with Slack and Email (soon).
 
 ## Getting Started
 
-The module is automatically published to the Terraform Module Registry. More information about the available inputs, outputs, dependencies and instructions how to use the module can be found at the official page [here](https://registry.terraform.io/modules/opendevsecops/lambda).
+Getting started is easy. You will need GuardDuty provisioned via terraform or manually activated via the AWS console. Once GuardDuty is activated, simply import the module and configure as desired. Here is a complete example:
+
+```terraform
+resource "aws_guardduty_detector" "default" {
+  enable = true
+}
+
+module "guardduty_monitor" {
+  source = "opendevsecops/guardduty-monitor/aws"
+
+  monitor_slack_notification_url = "${var.monitor_slack_notification_url}"
+}
+```
+
+The module is automatically published to the Terraform Module Registry. More information about the available inputs, outputs, dependencies and instructions how to use the module can be found at the official page [here](https://registry.terraform.io/modules/opendevsecops/guardduty-monitor).
