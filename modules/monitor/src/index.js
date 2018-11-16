@@ -64,12 +64,17 @@ const post = async (uri, body) => {
 exports.handler = async (event) => {
     console.log(event)
 
-    const { title='', description='' } = event
-    
+    const { detail={} } = event
+    const { title='', description='' } = detail
+
+    if (!title && !description) {
+        return
+    }
+
     if (process.env.SLACK_NOTIFICATION_URL) {
         console.log('Sending slack notification')
 
-        const text = `*${title}*\n${description}`
+        const text = `*${title ? title : '-'}*\n${description ? description : '-'}`
 
         try {
             await post(process.env.SLACK_NOTIFICATION_URL, {text})
