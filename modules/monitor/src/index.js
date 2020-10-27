@@ -1,34 +1,5 @@
 const url = require('url')
 const https = require('https')
-const awsSdk = require('aws-sdk')
-
-const ses = new awsSdk.SES()
-
-const send = async (from, to, subject, body) => {
-    return ses.sendEmail({
-        Source: from,
-
-        Destination: {
-            ToAddresses: [
-                to
-            ]
-        },
-
-        Message: {
-            Subject: {
-                Charset: 'UTF-8',
-                Data: subject
-            },
-
-            Body: {
-                Text: {
-                    Charset: 'UTF-8',
-                    Data: body
-                }
-            }
-        }
-    }).promise()
-}
 
 const post = async (uri, body) => {
     body = JSON.stringify(body)
@@ -65,7 +36,7 @@ exports.handler = async (event) => {
     console.log(event)
 
     const { detail={} } = event
-    const { title='', description='' } = detail
+    const { title='', description='', accountId='', region='' } = detail
 
     if (!title && !description) {
         return
@@ -74,10 +45,36 @@ exports.handler = async (event) => {
     if (process.env.SLACK_NOTIFICATION_URL) {
         console.log('Sending slack notification')
 
-        const text = `*${title ? title : '-'}*\n${description ? description : '-'}`
+        const slackMessage = {
+            text:     `*${title ? title : '-'}*`,
+            username: 'aws-binbash-org',
+            attachments: [
+                {
+                    color: 'danger',
+                    fallback: `${description ? description : '-'}`,
+                    fields: [
+                        {
+                            title: "Account ID",
+                            value: `${accountId ? accountId : '-'}`,
+                            short: true
+                        },
+                        {
+                            title: "Region",
+                            value: `${region ? region : '-'}`,
+                            short: true
+                        },
+                        {
+                            title: "Description",
+                            value: `${description ? description : '-'}`,
+                            short: false
+                        }
+                    ]
+                }
+            ]
+        };
 
         try {
-            await post(process.env.SLACK_NOTIFICATION_URL, {text})
+            await post(process.env.SLACK_NOTIFICATION_URL, slackMessage)
         } catch (e) {
             console.error(e)
         }
